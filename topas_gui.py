@@ -141,6 +141,7 @@ while True:
     if event == '-DICOM-':
         # Takes DICOM imageset location and checks it for CT images and pulls relevant data tags
         count_of_CT_images = 0
+        count_of_RTPLAN = 0
         try:    
             DICOM_PATH = values['-DICOM-']
             list_of_files = os.listdir(DICOM_PATH)
@@ -154,6 +155,24 @@ while True:
                             count_of_CT_images += 1
                         else:
                             raise 
+            for files in list_of_files: 
+                if dcmread(os.path.join(DICOM_PATH,files)).Modality == 'RTPLAN' and dcmread(os.path.join(DICOM_PATH,files)).PatientID == patient_ID:
+                    if count_of_RTPLAN == 0:
+                        count_of_RTPLAN += 1
+                        isocentre_coors = dcmread(os.path.join(DICOM_PATH,files)).BeamSequence[0].ControlPointSequence[0].IsocenterPosition
+                        values['-DICOM_ISOX-'] = str(round(isocentre_coors[0], 5)) + ' mm' 
+                        values['-DICOM_ISOY-'] = str(round(isocentre_coors[1], 5)) + ' mm'
+                        values['-DICOM_ISOZ-'] = str(round(isocentre_coors[2], 5)) + ' mm'
+                        window['-DICOM_ISOX-'].update(values['-DICOM_ISOX-'])
+                        window['-DICOM_ISOY-'].update(values['-DICOM_ISOY-'])
+                        window['-DICOM_ISOZ-'].update(values['-DICOM_ISOZ-'])
+                        values['-DICOMRP-'] = os.path.join(DICOM_PATH,files)
+                        window['-DICOMRP-'].update(values['-DICOMRP-'])
+                    elif count_of_RTPLAN != 0: 
+                        if dcmread(os.path.join(DICOM_PATH,files)).PatientID == patient_ID:
+                            count_of_RTPLAN += 1
+                            sg.popup("More than 1 RTPlan found, please manually select one" , auto_close= True, non_blocking=True)
+                            
             values['-PATID-'] = patient_ID
             window['-PATID-'].update(values['-PATID-'])
             sg.popup("Number of " + patient_ID + " CT images found" , count_of_CT_images , auto_close= True, non_blocking=True)
