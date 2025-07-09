@@ -75,13 +75,13 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                 shutil.copy(path + '/tmp/patientDICOM.txt', rundatadir)
 
                 command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt']
-                pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-                pool.map_async(run_topas, [(command, [rundatadir])])
-                pool.close()
-                pool.join()
+
+                subprocess.run("cd " + rundatadir, shell=True)
+                result = subprocess.run(command, cwd= rundatadir, shell =True) #for instant console output 
+
                 run_status= "DICOM simulation completed"
 
-        elif tag == 'ctdi16':
+        elif tag == 'ctdi16' or tag == 'ctdi32':
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
                 shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
                 shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
@@ -90,7 +90,11 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
                 elif fan_tag == 'Half Fan':
                        shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                commands = plugsgenerator('ctdi16', rundatadir, topas_application_path)
+                
+                if tag == 'ctdi16':
+                       commands = plugsgenerator('ctdi16', rundatadir, topas_application_path)
+                elif tag == 'ctdi32':
+                       commands =plugsgenerator('ctdi32', rundatadir, topas_application_path)
 
                 pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
                 pool.map_async(run_topas, commands)
@@ -98,23 +102,23 @@ def log_output(input_file_path, tag, topas_application_path, fan_tag):
                 pool.join()
                 run_status= "CTDI simulation completed" 
 
-        elif tag == 'ctdi32':
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
-                shutil.copy(path + '/tmp/head_calibration_factor.txt', rundatadir)
+        # elif tag == 'ctdi32':
+        #         shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
+        #         shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
+        #         shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
+        #         shutil.copy(path + '/tmp/head_calibration_factor.txt', rundatadir)
 
-                if fan_tag == 'Full Fan':
-                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
-                elif fan_tag == 'Half Fan':
-                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                commands =plugsgenerator('ctdi32', rundatadir, topas_application_path)
+        #         if fan_tag == 'Full Fan':
+        #                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
+        #         elif fan_tag == 'Half Fan':
+        #                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
+        #         commands =plugsgenerator('ctdi32', rundatadir, topas_application_path)
 
-                pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-                pool.map_async(run_topas, commands)
-                pool.close()
-                pool.join()
-                run_status= "CTDI simulation completed" 
+        #         pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
+        #         pool.map_async(run_topas, commands)
+        #         pool.close()
+        #         pool.join()
+        #         run_status= "CTDI simulation completed" 
 
         else:
               run_status = 'Error encountered' 

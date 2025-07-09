@@ -175,6 +175,9 @@ while True:
                             
             values['-PATID-'] = patient_ID
             window['-PATID-'].update(values['-PATID-'])
+            if values['-DICOM_OUTPUT_NAME_TOG-'] == True:
+                values['-DICOM_OUTPUT_NAME_TOG-'] = (values['-PATID-'] +'_'+ values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-'] +'_'+values['-STARTANGLEROT-']).replace(" ", "")
+                window['-DICOM_OUTPUT_NAME-'].update(values['-DICOM_OUTPUT_NAME_TOG-'])
             sg.popup("Number of " + patient_ID + " CT images found" , count_of_CT_images , auto_close= True, non_blocking=True)
         except: 
             sg.popup_error("No CT images found in the folder or more than 1 patient file found")
@@ -278,12 +281,26 @@ while True:
         window['-BLADE_X2-'].update(values['-BLADE_X2-'])
         window['-BLADE_Y1-'].update(values['-BLADE_Y1-'])
         window['-BLADE_Y2-'].update(values['-BLADE_Y2-'])
+        if values['-DICOM_OUTPUT_NAME_TOG-'] == True:
+            values['-DICOM_OUTPUT_NAME_TOG-'] = values['-PATID-'] +'_'+ values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-'] +'_'+values['-STARTANGLEROT-']
+            window['-DICOM_OUTPUT_NAME-'].update(values['-DICOM_OUTPUT_NAME_TOG-'])
+
 
     if event == '-COUCH_TOG-':
         window['-COUCH-'].update(visible=values['-COUCH_TOG-'])
 
     if event == '-CTDI_BLADE_TOG-':
         window['-CTDI_BLADE-'].update(visible=values['-CTDI_BLADE_TOG-'])
+
+    if event == '-DICOM_OUTPUT_NAME_TOG-':
+        window['-DICOM_OUTPUT_NAME-'].update(readonly=values['-DICOM_OUTPUT_NAME_TOG-'])
+        if values['-DICOM_OUTPUT_NAME_TOG-'] == True:
+            values['-DICOM_OUTPUT_NAME_TOG-'] = (values['-PATID-'] +'_'+ values['-DIRECTROT-'] +'_'+ values['-IMAGEMODE-'] +'_'+values['-STARTANGLEROT-']).replace(" ", "")
+            window['-DICOM_OUTPUT_NAME-'].update(values['-DICOM_OUTPUT_NAME_TOG-'])
+        elif values['-DICOM_OUTPUT_NAME_TOG-'] == False: 
+            pass
+
+        # window['']
 
     if event == sg.WIN_CLOSED:
         break

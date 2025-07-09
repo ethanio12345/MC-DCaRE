@@ -11,6 +11,7 @@ default_Histories = '100000'
 # DICOM specific stuff
 default_DICOM_Directory = '/home/jkgan/sampledicom/Cheryl/cherylair'
 default_DICOM_RP_file = '/home/jkgan/sampledicom/Cheryl/cherylair/RP.Cheryl Phantom CTDI.Physics.dcm'
+default_DICOM_Output_File_Name = 'DoseOnRTGrid100kz17'
 default_DICOM_TRANS_X = '0. mm'
 default_DICOM_TRANS_Y = '0. mm'
 default_DICOM_TRANS_Z = '0. mm'

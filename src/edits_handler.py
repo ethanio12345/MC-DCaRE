@@ -107,11 +107,14 @@ def editor(change_dictionary: dict,  TargetFile: str, filetype:str):
             stringindexreplacement('dc:Ge/Patient/UserTransY', filecontent , change_dictionary['-DICOM_TY-'])
             stringindexreplacement('dc:Ge/Patient/UserTransZ', filecontent , change_dictionary['-DICOM_TZ-'])
 
-            filerename = change_dictionary['-PATID-'] +'_'+ change_dictionary['-DIRECTROT-'] +'_'+ change_dictionary['-IMAGEMODE-'] +'_'+change_dictionary['-STARTANGLEROT-']
-            filerename = filerename.replace(" ", "")
-            filerename_topas = '\"' + filerename +'\"'
-            stringindexreplacement('s:Sc/DoseOnRTGrid100kz17/OutputFile', filecontent , filerename_topas) 
+            # filerename = change_dictionary['-PATID-'] +'_'+ change_dictionary['-DIRECTROT-'] +'_'+ change_dictionary['-IMAGEMODE-'] +'_'+change_dictionary['-STARTANGLEROT-']
+            # filerename = filerename.replace(" ", "")
+            # filerename_topas = '\"' + filerename +'\"'
+            # stringindexreplacement('s:Sc/DoseOnRTGrid100kz17/OutputFile', filecontent , filerename_topas) 
+
             # replace DoseOnRTGrid100kz17 with filerename
+            filerename = change_dictionary['-DICOM_OUTPUT_NAME-']
+            stringindexreplacement('s:Sc/DoseOnRTGrid100kz17/OutputFile', filecontent , '\"' + filerename +'\"') 
             for i in range(len(filecontent)):
                 filecontent[i] = filecontent[i].replace('DoseOnRTGrid100kz17', filerename)
 

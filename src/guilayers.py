@@ -109,6 +109,10 @@ dicom_file_layer = sg.Frame("DICOM inputs",
                                 [sg.Text('DICOM RP file',size =(17,1),text_color='black'),
                                  sg.In(default_text=default_DICOM_RP_file,key='-DICOMRP-',size=(50,1),enable_events=True),sg.FileBrowse(button_text= "Browse", key= 'Browse2' ,file_types= (("DICOM File",'*.dcm'),) )
                                 ],
+                                [sg.Text('File output name',size =(17,1),text_color='black'),
+                                 sg.In(default_text=default_DICOM_Output_File_Name,key='-DICOM_OUTPUT_NAME-',size=(50,1),enable_events=True),
+                                 sg.Checkbox('Use default', enable_events=True, key='-DICOM_OUTPUT_NAME_TOG-', default= True)
+                                ],
                                 [sg.Button("Run set up imaging dose simulation",enable_events=True, key='-DICOM_RUN-',size=(35,1))],
                               ])
 
