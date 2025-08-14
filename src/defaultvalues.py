@@ -2,10 +2,10 @@
 # default_ = 
 
 
-default_G4_Directory = '/root/G4Data'
-default_TOPAS_Directory = '/root/topas/bin/topas '
+default_G4_Directory = '/home/bchcphysics/Applications/GEANT4/G4DATA'
+default_TOPAS_Directory = '/home/bchcphysics/shellScripts/topas'
 default_Seed = '9'
-default_Threads  = '1'
+default_Threads  = '12'
 default_Histories = '100000'
 
 # DICOM specific stuff
@@ -31,12 +31,12 @@ default_COUCH_HLZ = '1000 mm'
 default_COUCH_HLY = '0.4 mm'
 default_COUCH_HLX = '260. mm'
 
-default_TIME_SEQ_TIME = '1000'
+default_TIME_SEQ_TIME = '8'
 default_TIME_VERBOSITY = '0'
-default_TIME_TIME_END = '501.0 s'
+default_TIME_TIME_END = '60.0 s'
 default_TIME_ROT_FUNC = 'Linear deg'
-default_TIME_ROT_RATE = '0.4 deg/s'
-default_TIME_ROT_START = '0.0 deg'
+default_TIME_ROT_RATE = '6 deg/s'
+default_TIME_ROT_START = '90.0 deg'
 default_TIME_ROT_HISTORY = '100000'
 
 
@@ -50,5 +50,5 @@ default_BLADE_X2 = '-6.175536078965273 cm'
 default_BLADE_Y1 = '5.814471115800571 cm'
 default_BLADE_Y2 = '-5.814471115800571 cm'
 default_IMAGE_START_ANGLE = '0 deg'
-default_IMAGE_VOLTAGE = '100 kV'
+default_IMAGE_VOLTAGE = '125 kV'
 default_EXPOSURE = '100 mAs'

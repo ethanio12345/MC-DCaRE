@@ -1,10 +1,12 @@
 import spekpy as sp
 import numpy as np
+import matplotlib.pyplot as plt
 
 def generate_new_topas_beam_profile(anode_voltage:float, exposure:float, Histories:str, path):
-    s=sp.Spek(kvp=anode_voltage,th=14,mas =exposure,dk = 0.2, z=0.1) # unfiltered spectrum at 1mm 
-    # s.filter('Al',2.7) #2.7mm filter at the kV xray tube exit window from manual
-
+    s=sp.Spek(kvp=anode_voltage,th=14,mas =exposure,dk = 0.2, z=0.1,
+              ) # unfiltered spectrum at 1mm 
+    s.filter('Al',2.7) #2.7mm filter at the kV xray tube exit window from manual
+    
     summary_of_inputs = s.state.get_current_state_str('full', s.get_std_results())
     # Export (save) spectrum to file, doesnt seem to be used
     # s.export_spectrum('imaging_params.spk', comment='for topas export')
@@ -54,12 +56,70 @@ def generate_new_topas_beam_profile(anode_voltage:float, exposure:float, Histori
         f.write(convertedFile)
         # ...
 
+def parse_topas_file(filepath):
+    """Parse the TOPAS energy spectrum file."""
+    with open(filepath, 'r') as f:
+        content = f.read()
+    
+    # Split by the TOPAS parameter markers
+    parts = content.split('dv:So/beam/BeamEnergySpectrumValues = 620')
+    if len(parts) < 2:
+        raise ValueError("Could not find energy values in file")
+    
+    energy_part = parts[1].split('uv:So/beam/BeamEnergySpectrumWeights = 620')[0]
+    weight_part = parts[1].split('uv:So/beam/BeamEnergySpectrumWeights = 620')[1]
+    
+    # Parse energy values - handle 'keV' suffix
+    energy_str = energy_part.replace('\n', ' ').strip()
+    energy_tokens = [x.replace('keV', '') for x in energy_str.split() if x.strip()]
+    energies = [float(x) for x in energy_tokens if x]
+    
+    # Parse weight values
+    weight_str = weight_part.replace('\n', ' ').strip()
+    weight_tokens = [x for x in weight_str.split() if x.strip()]
+    weights = [float(x) for x in weight_tokens if x]
+    
+    return np.array(energies), np.array(weights)
 
+def plot_spectrum(energies, weights, output_file='spectrum_plot.png'):
+    """Plot the energy spectrum."""
+    plt.figure(figsize=(12, 8))
+    
+    # Create the plot
+    plt.subplot(2, 1, 1)
+    plt.plot(energies, weights, 'b-', linewidth=1.5)
+    plt.xlabel('Energy (keV)')
+    plt.ylabel('Weight')
+    plt.title('TOPAS Beam Energy Spectrum')
+    plt.grid(True, alpha=0.3)
+    
+    # Log scale plot for better visibility of small values
+    plt.subplot(2, 1, 2)
+    plt.semilogy(energies, weights, 'r-', linewidth=1.5)
+    plt.xlabel('Energy (keV)')
+    plt.ylabel('Weight (log scale)')
+    plt.title('TOPAS Beam Energy Spectrum (Log Scale)')
+    plt.grid(True, alpha=0.3)
+    
+    plt.tight_layout()
+    plt.savefig(output_file, dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    # Print some statistics
+    print(f"Energy range: {energies.min():.1f} - {energies.max():.1f} keV")
+    print(f"Total weight: {np.sum(weights):.6f}")
+    print(f"Peak weight: {np.max(weights):.6f} at {energies[np.argmax(weights)]:.1f} keV")
+    
+    
 if __name__ == '__main__' : 
     # input values
     anode_voltage = 125 #'100 kV'
     exposure = 10 #'100 mAs'
     Histories = "100"
-    generate_new_topas_beam_profile(anode_voltage, exposure, Histories, '/home/jkgan/MC-DCaRE')
+    generate_new_topas_beam_profile(anode_voltage, exposure, Histories, '/home/bchcphysics/Applications/MC-DCaRE')
+    filepath = '/home/bchcphysics/Applications/MC-DCaRE/tmp/ConvertedTopasFile.txt'
+    energies, weights = parse_topas_file(filepath)
+    plot_spectrum(energies, weights)
+
 
 
