@@ -1,17 +1,35 @@
 # This script is used to handle all the edits that must be made to the .batch and python files.
 from src.fieldtobladeopening import fieldtobladeopening
 
-def stringindexreplacement(SearchString :str , TargetList: str , ReplacementString :str = None):
+def stringindexreplacement(
+    SearchString: str, 
+    TargetList: list, 
+    ReplacementString: str = None
+) -> None:
     '''
     Targeted string replacement for a list. 
-    Function looks for the line that startes with SearchString in the list and replaces it with Replacement String. 
-    Function will replace the entire line and any information trailing the SearchString and replacement string will be lost in this process. 
+
+    Function looks for the line that starts with SearchString in the list and
+    replaces it with Replacement String. Function will replace the entire line and
+    any information trailing the SearchString and replacement string will be lost
+    in this process.
+
     Untested, but should be faster
-    If no replacement string is given in the arguements, the entire line is removed 
+
+    If no replacement string is given in the arguments, the entire line is removed
+
+    :param SearchString: The string to search for in the list. 
+    :type SearchString: str
+    :param TargetList: The list of strings to search and replace in
+    :type TargetList: list[str]
+    :param ReplacementString: The string to replace the SearchString with. Defaults to None
+    :type ReplacementString: str, optional
+    :return: None
+    :rtype: None
     '''
     for lineIndex in range(len(TargetList)):
         if TargetList[lineIndex].startswith(SearchString):
-            if ReplacementString == None:
+            if ReplacementString is None:
                 TargetList[lineIndex] = '' 
                 break #exits after the first instance of match. Saves compute. 
             else:

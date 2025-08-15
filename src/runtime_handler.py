@@ -6,21 +6,29 @@ from datetime import datetime
 import shutil
 import subprocess
 import multiprocessing as mp
+from typing import List
 
-def run_topas(x1):
-        # This function exist so that a nested list of commands can be parsed and scheduled to be processed asyncro
-        command = x1[0][0]
-        rundatadir = x1[1][0]
-        subprocess.run("cd " + rundatadir, shell=True)
-        # result = subprocess.run(command, cwd= rundatadir, shell =True, capture_output=True, text=True)
-        # print(result.stdout) #Gives console output as as text chunk, for logging 
-        result = subprocess.run(command, cwd= rundatadir, shell =True) #for instant console output 
-        print('ran')
+def run_topas(x1: List[List[str]]) -> None:
+    """This function exist so that a nested list of commands can be parsed and scheduled to be processed asyncro
 
-def plugsgenerator(phantomsize: str , rundatadir: str , topas_application_path: str): 
+    Args:
+        x1 (List[List[str]]): A nested list of commands to be ran with the topas executable. The outer list contains the commands and the inner list contains the arguments to the command.
+
+    Returns:
+        None
+    """
+    command = x1[0][0]
+    rundatadir = x1[1][0]
+    subprocess.run("cd " + rundatadir, shell=True)
+    # result = subprocess.run(command, cwd= rundatadir, shell =True, capture_output=True, text=True)
+    # print(result.stdout) #Gives console output as as text chunk, for logging 
+    result = subprocess.run(command, cwd= rundatadir, shell =True) #for instant console output 
+    print('ran')
+
+def plugsgenerator(phantomsize: str, rundatadir: str, topas_application_path: str) -> List[List[List[str]]]:
         '''
-        This function is only used for CTDI to generate 5 files to simulation the placement of a detector on the 5 possible plug positions.        
-        Returns a nested list of commands to be ran to multi process all 5 files together. 
+        This function is only used for CTDI to generate 5 files to simulation the placement of a detector on the 5 possible plug positions.
+        Returns a nested list of commands to be ran to multi process all 5 files together.
         '''
         path = os.getcwd()
         plugs_position = ['ChamberPlugCentre', 'ChamberPlugTop', 'ChamberPlugBottom', 'ChamberPlugLeft', 'ChamberPlugRight']
@@ -51,75 +59,73 @@ def plugsgenerator(phantomsize: str , rundatadir: str , topas_application_path: 
                 with open(positionfile, 'w') as file:
                         file.write(file_data)
                 commands.append([[topas_application_path + ' ' + rundatadir + '/'+ position + '.txt'], [rundatadir]])        
-        return commands 
+        return commands
 
-def log_output(input_file_path, tag, topas_application_path, fan_tag):
-        rundatadir = os.path.join(
-                os.getcwd() +"/runfolder",
-                datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
-        os.makedirs(rundatadir) #creates a folder marked by date and time 
-        shutil.copy(input_file_path, rundatadir)
-        path = os.getcwd()
-        
-        if tag == 'dicom':
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/HUtoMaterialSchneider.txt', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                if fan_tag == 'Full Fan':
-                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
-                elif fan_tag == 'Half Fan':
-                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
-                shutil.copy(path + '/tmp/head_calibration_factor.txt', rundatadir)
-                shutil.copy(path + '/tmp/headsourcecode.txt', rundatadir)
-                shutil.copy(path + '/tmp/patientDICOM.txt', rundatadir)
+def log_output(
+        input_file_path: str,
+        tag: str,
+        topas_application_path: str,
+        fan_tag: str
+    ) -> str:
+    """This function runs a TOPAS simulation using multiprocessing.
 
-                command = [topas_application_path + ' ' + rundatadir + '/headsourcecode.txt']
-                pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-                pool.map_async(run_topas, [(command, [rundatadir])])
-                pool.close()
-                pool.join()
-                run_status= "DICOM simulation completed"
+    Args:
+        input_file_path (str): The file path of the input file.
+        tag (str): A tag that determines which type of simulation is to be run.
+        topas_application_path (str): The file path of the TOPAS executable.
+        fan_tag (str): A tag that determines which fan type is to be used.
 
-        elif tag == 'ctdi16':
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
-                shutil.copy(path + '/tmp/head_calibration_factor.txt', rundatadir)
-                if fan_tag == 'Full Fan':
-                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
-                elif fan_tag == 'Half Fan':
-                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                commands = plugsgenerator('ctdi16', rundatadir, topas_application_path)
+    Returns:
+        str: A string indicating the status of the simulation.
+    """
+    rundatadir = os.path.join(
+        os.getcwd(), "runfolder", datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+    os.makedirs(rundatadir, exist_ok=True)
+    shutil.copy(input_file_path, rundatadir)
+    path = os.getcwd()
 
-                pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-                pool.map_async(run_topas, commands)
-                pool.close()
-                pool.join()
-                run_status= "CTDI simulation completed" 
+    def copy_common_files():
+        common_files = [
+            'Muen.dat',
+            'NbParticlesInTime.txt',
+            'ConvertedTopasFile.txt',
+            'head_calibration_factor.txt'
+        ]
+        for file in common_files:
+            shutil.copy(os.path.join(path, 'src/boilerplates/TOPAS_includeFiles', file), rundatadir)
 
-        elif tag == 'ctdi32':
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/Muen.dat', rundatadir)
-                shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/NbParticlesInTime.txt', rundatadir)
-                shutil.copy(path + '/tmp/ConvertedTopasFile.txt', rundatadir)
-                shutil.copy(path + '/tmp/head_calibration_factor.txt', rundatadir)
+    def copy_fan_file():
+        fan_file = 'fullfan.txt' if fan_tag == 'Full Fan' else 'halffan.txt'
+        shutil.copy(os.path.join(path, 'src/boilerplates/TOPAS_includeFiles', fan_file), rundatadir)
 
-                if fan_tag == 'Full Fan':
-                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/fullfan.txt', rundatadir)
-                elif fan_tag == 'Half Fan':
-                       shutil.copy(path + '/src/boilerplates/TOPAS_includeFiles/halffan.txt', rundatadir)
-                commands =plugsgenerator('ctdi32', rundatadir, topas_application_path)
+    pool_size = mp.cpu_count() - 1
 
-                pool = mp.Pool(60) #How to best tune this? Currently taking it as -1 of max cpu count 
-                pool.map_async(run_topas, commands)
-                pool.close()
-                pool.join()
-                run_status= "CTDI simulation completed" 
+    if tag == 'dicom':
+        shutil.copy(os.path.join(path, 'src/boilerplates/TOPAS_includeFiles', 'HUtoMaterialSchneider.txt'), rundatadir)
+        copy_fan_file()
+        shutil.copy(os.path.join(path, 'tmp', 'headsourcecode.txt'), rundatadir)
+        shutil.copy(os.path.join(path, 'tmp', 'patientDICOM.txt'), rundatadir)
+        command = [f"{topas_application_path} {rundatadir}/headsourcecode.txt"]
+        with mp.Pool(pool_size) as pool:
+            pool.map_async(run_topas, [(command, [rundatadir])])
+            pool.close()
+            pool.join()
+        run_status = "DICOM simulation completed"
 
-        else:
-              run_status = 'Error encountered' 
+    elif tag in ['ctdi16', 'ctdi32']:
+        copy_common_files()
+        copy_fan_file()
+        commands = plugsgenerator(tag, rundatadir, topas_application_path)
+        with mp.Pool(pool_size) as pool:
+            pool.map_async(run_topas, commands)
+            pool.close()
+            pool.join()
+        run_status = "CTDI simulation completed"
 
-        return run_status
+    else:
+        run_status = 'Error encountered'
+
+    return run_status
 
 if __name__ == "__main__":
     pass

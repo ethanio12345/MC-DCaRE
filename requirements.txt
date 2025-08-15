@@ -3,3 +3,4 @@ FreeSimpleGUI
 numpy
 pydicom
 spekpy
+Sphinx
